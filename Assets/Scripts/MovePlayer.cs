@@ -2,21 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MovePlayer : MonoBehaviour
+public class MovePlayer : Fighter
 {
-    public float speed = 3f;
-    public float rotSpeed = 3f;
-    Transform cameraTransform;
-    Rigidbody rigidbody;
-    Vector3 moveDir;
-    Vector3 initialPos;
-    public float minPossibleY = -50f;//prag sub care nu mai exista platforme
+    public List<Transform> opponents;
+    Transform activeOpponent = null;
     // Start is called before the first frame update
     void Start()
     {
-        cameraTransform = Camera.main.transform;
-        rigidbody = GetComponent<Rigidbody>();
-        initialPos = transform.position;
+        base.GetCommonComponents();
     }
 
     // Update is called once per frame
@@ -24,29 +17,77 @@ public class MovePlayer : MonoBehaviour
     {//de N ori pe secunda, N fluctuant
         GetMoveDirection();
 
-        ApplyRootMotion();
+        UpdateAnimatorParameters();
 
-        ApplyRootRotation();
+        HandleAttack();
 
         HandleJump();
     }
+    private void HandleAttack()
+    {
+        if (Input.GetButtonDown("Fire1"))
+            animator.SetTrigger("Punch");
+    }
+    private void OnAnimatorMove()
+    {
+        ApplyRootMotion();
+        ApplyRootRotation();
+    }
+    private void UpdateAnimatorParameters()
+    {
+        Vector3 characterSpaceMoveDir = transform.InverseTransformDirection(moveDir);
+        if (!Input.GetKey(KeyCode.LeftShift))
+            characterSpaceMoveDir *= 0.5f;
+        animator.SetFloat("Forward", characterSpaceMoveDir.z, 0.15f, Time.deltaTime);
+        animator.SetFloat("Right", characterSpaceMoveDir.x, 0.15f, Time.deltaTime);
+    }
     private void ApplyRootMotion()
     {
+        if (!grounded)
+        {
+            animator.applyRootMotion = false;
+            return;
+        }
+        animator.applyRootMotion = true;
         //transform.position += dir * speed * Time.deltaTime; //doar daca nu avem rigidbody atasat
         float velY = rigidbody.velocity.y; //pastram viteza pe axa verticala, calculata de motorul fizic
-        rigidbody.velocity = moveDir * speed; // suprascriem viteza corpului cu directia de miscare
+        //rigidbody.velocity = moveDir * speed; // suprascriem viteza corpului cu directia de miscare, personaj aluneca de la hardcodare
+        rigidbody.velocity = animator.deltaPosition / Time.deltaTime;
         rigidbody.velocity = new Vector3(rigidbody.velocity.x,
-                                         velY, //pentru gravitatie, cadere libera
-                                         rigidbody.velocity.z);
+                                            velY, //pentru gravitatie, cadere libera
+                                            rigidbody.velocity.z);
     }
     private void ApplyRootRotation()
     {
-        if (moveDir.magnitude < 10e-3f) //rotim doar daca directia de miscare e nenula
-            return;
-        Quaternion targetRotation = Quaternion.LookRotation(moveDir);
+        Vector3 lookDirection = GetDirectionToClosestOpponent();
+        Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
         //roteste smooth de la rotatia curenta la rotatia tinta
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotSpeed);
     }
+
+    private Vector3 GetDirectionToClosestOpponent()
+    {
+        Vector3 lookDirection = transform.forward;
+        if (moveDir.magnitude > 10e-3f)
+            lookDirection = moveDir; //rotim catre directia de miscare daca aceasta e nenula
+        float distToClosestOpp = float.MaxValue;
+        Transform closestOpp = null;
+        for (int i = 0; i < opponents.Count; i++)
+        {
+            Vector3 toOpp = opponents[i].position - transform.position;
+            float distToOpp = toOpp.magnitude;
+            if (distToOpp < distToClosestOpp && distToOpp < combatRange)
+            {
+                closestOpp = opponents[i];
+                distToClosestOpp = distToOpp;
+            }
+        }
+        if (closestOpp != null) //s-a gasit cel mai apropiat inamic in combatRange
+            lookDirection = (closestOpp.position - transform.position).normalized;
+
+        return lookDirection;
+    }
+
     private void GetMoveDirection()
     {
         float h = Input.GetAxis("Horizontal");// -1 pentru tasta A, 1 pentru tasta D, 0 altfel
@@ -58,7 +99,8 @@ public class MovePlayer : MonoBehaviour
     }
     private void HandleJump()
     {
-        if (transform.position.y < minPossibleY)
-            transform.position = initialPos; // a cazut de pe platforma, il teleportam la pozitia initiala
+        CheckGroundedStatus();
+        if (grounded && Input.GetButtonDown("Jump"))
+            rigidbody.AddForce(Vector3.up * jumpPower, ForceMode.VelocityChange);
     }
 }
