@@ -17,7 +17,11 @@ public class Fighter: MonoBehaviour
     protected bool grounded;
     public float minPossibleY = -50f;//prag sub care nu mai exista platforme
     public float combatRange = 4f;
-
+    protected bool isInCombatRange = false;
+    public Transform activeOpponent = null;
+    public Vector3 toOpp;
+    protected Transform headTransform;
+    protected AnimatorStateInfo stateInfo;
     protected void GetCommonComponents()
     {
         cameraTransform = Camera.main.transform;
@@ -25,6 +29,7 @@ public class Fighter: MonoBehaviour
         capsule = GetComponent<CapsuleCollider>();
         rigidbody = GetComponent<Rigidbody>();
         initialPos = transform.position;
+        headTransform = animator.GetBoneTransform(HumanBodyBones.Head);
     }
 
     protected void CheckGroundedStatus()
@@ -48,7 +53,29 @@ public class Fighter: MonoBehaviour
                     grounded = true; //e pe sol, raza a lovit pamant sub picioare
             }
         }
-
         animator.SetBool("Midair", !grounded);
+    }
+    protected void ApplyRootRotation(Vector3 lookDirection)
+    {
+        Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+        //roteste smooth de la rotatia curenta la rotatia tinta
+        float realRotSpeed = isInCombatRange ? rotSpeed * 3f : rotSpeed;
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation,
+                                              Time.deltaTime * realRotSpeed);
+    }
+    protected void LookAtOpponent()
+    {
+        stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+        
+        if (activeOpponent != null && stateInfo.IsName("Grounded"))
+        {
+            Vector3 fwd = transform.forward;
+            Vector3 headLookAtTarget = activeOpponent.position + Vector3.up * 1.2f;
+            Vector3 headLookDir = headLookAtTarget - headTransform.position;//suceste gatul
+            float theDot = Mathf.Max(0, Vector3.Dot(fwd, headLookDir));// uita-te la opponent doar daca e in fata ta...
+            Quaternion newHeadRotation = Quaternion.LookRotation(headLookDir);//..ca sa nu suceasca
+            headTransform.rotation = Quaternion.Slerp(headTransform.rotation, newHeadRotation, theDot);
+
+        }
     }
 }

@@ -6,11 +6,21 @@ public class AttackTrigger : MonoBehaviour
 {
     public string opponentLayer;
     public string side;
-    private void OnTriggerEnter(Collider other)
+    //necesita collider cu isTrigger bifat
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    if (other.gameObject.layer != LayerMask.NameToLayer(opponentLayer))
+    //        return;
+    //    Animator opponentAnimator = other.GetComponentInParent<Animator>();
+    //    opponentAnimator.Play(side + "TakeHit");
+    //}
+
+    //necesita rigidbody:
+    private void OnCollisionEnter(Collision collision)
     {
-        if (other.gameObject.layer != LayerMask.NameToLayer(opponentLayer))
+        if (collision.gameObject.layer != LayerMask.NameToLayer(opponentLayer))
             return;
-        Animator opponentAnimator = other.GetComponentInParent<Animator>();
+        Animator opponentAnimator = collision.gameObject.GetComponentInParent<Animator>();
         opponentAnimator.Play(side + "TakeHit");
     }
 }

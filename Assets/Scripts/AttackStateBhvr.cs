@@ -17,15 +17,16 @@ public class AttackStateBhvr : StateMachineBehaviour
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         float t = stateInfo.normalizedTime;
+        //collider activ pe maini doar in framurile in care poate lovi, intre timestamps
         animator.GetBoneTransform(bone).GetComponent<Collider>().enabled =
                 t > colliderEnableTimestamp && t < colliderDisableTimestamp;
     }
 
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state
-    //override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
-    //{
-
-    //}
+    override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    {
+        animator.GetBoneTransform(bone).GetComponent<Collider>().enabled = false;
+    }
 
     // OnStateMove is called right after Animator.OnAnimatorMove()
     //override public void OnStateMove(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)

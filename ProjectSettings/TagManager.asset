@@ -17,8 +17,8 @@ TagManager:
   - HurtBox
   - OppHitBox
   - OppHurtBox
-  - 
-  - 
+  - Opponent
+  - Player
   - 
   - 
   - 
