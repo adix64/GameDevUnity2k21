@@ -30,6 +30,7 @@ public class MovePlayer : Fighter
     private void HandleShooting()
     {
         aiming = Input.GetButton("Fire2");
+        dontTurnHead = aiming;
         animator.SetBool("Aiming", aiming);
         weapon.gameObject.SetActive(aiming);//face arma (in)vizibila daca (nu)tinteste
         

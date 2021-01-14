@@ -26,7 +26,7 @@ public class Opponent : Fighter
         yield return new WaitForSeconds(t);
         int r = Random.Range(0, 10);
         switch (r)
-        {
+        {//se schimba comportamentul oponentului in functie de numarul aleator cu anumita probabilitate de a ocoli playerul:
             case 0: case 1: destinationOffset =  transform.right; break;
             case 2: case 3: case 9: destinationOffset = -transform.right; break;
             case 4: case 5: case 6: destinationOffset = -transform.forward * 3f; break;
@@ -56,6 +56,7 @@ public class Opponent : Fighter
     {
         if (!grounded)
             return;
+        // targeteaza playerul cu offsetul calculat random in functia SeedRandomDirCoroutine
         agent.SetDestination(activeOpponent.position + destinationOffset);
         
         ComputeAgentSpeed();

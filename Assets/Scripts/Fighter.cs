@@ -22,6 +22,7 @@ public class Fighter: MonoBehaviour
     public Vector3 toOpp;
     protected Transform headTransform;
     protected AnimatorStateInfo stateInfo;
+    protected bool dontTurnHead = false;
     protected void GetCommonComponents()
     {
         cameraTransform = Camera.main.transform;
@@ -65,6 +66,8 @@ public class Fighter: MonoBehaviour
     }
     protected void LookAtOpponent()
     {
+        if (dontTurnHead)
+            return;
         stateInfo = animator.GetCurrentAnimatorStateInfo(0);
         
         if (activeOpponent != null && stateInfo.IsName("Grounded"))
