@@ -11,7 +11,7 @@ public class MovePlayer : Fighter
     Transform chest;
     Transform upperChest;
     Transform rightHand;
-
+    AudioSource source;
     void Start()
     {
         base.GetCommonComponents();
@@ -19,6 +19,7 @@ public class MovePlayer : Fighter
         upperChest = animator.GetBoneTransform(HumanBodyBones.UpperChest);
         rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
         Cursor.lockState = CursorLockMode.Locked;
+        source = GetComponent<AudioSource>();
     }
     void Update()
     {//de N ori pe secunda, N fluctuant
@@ -38,6 +39,7 @@ public class MovePlayer : Fighter
             return;
         if (Input.GetButtonDown("Fire1"))
         {
+            source.Play();
             var projectile = Instantiate(projectilePrefab);
             projectile.transform.position = weaponTip.position;
             projectile.transform.up = weaponTip.right;

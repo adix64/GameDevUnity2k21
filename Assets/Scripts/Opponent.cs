@@ -56,8 +56,11 @@ public class Opponent : Fighter
     {
         if (!grounded)
             return;
-        // targeteaza playerul cu offsetul calculat random in functia SeedRandomDirCoroutine
-        agent.SetDestination(activeOpponent.position + destinationOffset);
+
+        if(toOpp.magnitude > 10f)
+             agent.SetDestination(transform.position);//nu se deplaseaza
+        else // targeteaza playerul cu offsetul calculat random in functia SeedRandomDirCoroutine
+            agent.SetDestination(activeOpponent.position + destinationOffset);
         
         ComputeAgentSpeed();
         Vector3 characterSpaceMoveDir = transform.InverseTransformDirection(agent.velocity);
